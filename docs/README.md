@@ -7,6 +7,7 @@
 
 | | 文件 | 對應程式碼 | 一句話 |
 |---|---|---|---|
+| 0 | [符號說明](00-符號說明.md) | `tools/demo_operators.py` | **先看這份**。⊙ 和 @ 都叫「乘」，但完全是兩回事 |
 | 1 | [全景圖](01-全景圖.md) | — | 一句話進去，到權重被改動，中間發生了什麼 |
 | 2 | [詞表大小是怎麼決定的](02-tokenizer.md) | `tokenizer/bpe.py` | 「6400 個詞哪來的」 |
 | 3 | [Embedding 與 scatter-add](03-embedding.md) | `scratch/embedding.py` | 查表為什麼是矩陣乘法，反向為什麼是相加 |
@@ -29,6 +30,9 @@
 ## 附：怎麼產生講解用的素材
 
 ```bash
+# ⊙ 與 @ 的差別，用最小的矩陣算給你看（含有限差分驗證）
+python tools/demo_operators.py
+
 # 逐層梯度驗證表（可直接貼進簡報）
 python tests/test_layers.py          # -> traces/gradcheck.txt
 
