@@ -10,6 +10,7 @@
 這也是為什麼推論比訓練省記憶體那麼多——不用存每一層的中間值等著反向用。
 """
 import argparse
+import json
 import os
 import sys
 
@@ -19,6 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scratch.model import TinyLM                       # noqa: E402
 from scratch.tracer import Tracer, NULL                # noqa: E402
 from tokenizer.char_tokenizer import CharTokenizer, EOS  # noqa: E402
+from tokenizer.bpe import BPETokenizer                   # noqa: E402
 
 
 def sample_next(logits, temperature=0.9, top_k=40, top_p=0.9, seen=None, rep_penalty=1.1):
@@ -55,7 +57,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--prompt', default='貓是一種')
     ap.add_argument('--model', default='out/model.pt')
-    ap.add_argument('--tokenizer', default='out/tokenizer.json')
+    ap.add_argument('--tokenizer', default=None,
+                    help='不指定就自動找 out/tokenizer_bpe.json 或 out/tokenizer_char.json')
     ap.add_argument('--max-new', type=int, default=80)
     ap.add_argument('--temperature', type=float, default=0.9)
     ap.add_argument('--top-k', type=int, default=40)
@@ -67,7 +70,16 @@ def main():
     args = ap.parse_args()
 
     torch.manual_seed(args.seed)
-    tok = CharTokenizer.load(args.tokenizer)
+    tp = args.tokenizer
+    if tp is None:
+        for cand in ('out/tokenizer_bpe.json', 'out/tokenizer_char.json', 'out/tokenizer.json'):
+            if os.path.exists(cand):
+                tp = cand
+                break
+    with open(tp, encoding='utf-8') as f:
+        kind = json.load(f).get('type', 'char')
+    tok = (BPETokenizer if kind == 'bpe' else CharTokenizer).load(tp)
+    print('tokenizer: %s（%s，詞表 %s）' % (tp, kind, '{:,}'.format(len(tok))))
     ckpt = torch.load(args.model, map_location=args.device)
     cfg = ckpt['cfg']
 

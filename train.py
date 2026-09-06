@@ -25,6 +25,7 @@ from scratch.loss import SoftmaxCrossEntropy           # noqa: E402
 from scratch.adamw import AdamW, cosine_lr             # noqa: E402
 from scratch.tracer import Tracer, NULL                # noqa: E402
 from tokenizer.char_tokenizer import CharTokenizer     # noqa: E402
+from tokenizer.bpe import BPETokenizer                 # noqa: E402
 
 
 def load_corpus(path, max_lines):
@@ -45,6 +46,8 @@ def main():
     ap.add_argument('--corpus', default='data/corpus_zhtw.jsonl')
     ap.add_argument('--max-lines', type=int, default=20000)
     ap.add_argument('--vocab', type=int, default=5000)
+    ap.add_argument('--tokenizer', choices=['char', 'bpe'], default='char',
+                    help='char = 一個字一個 token（好懂）；bpe = 合併高頻字組（序列短約 30%）')
     ap.add_argument('--dim', type=int, default=128)
     ap.add_argument('--layers', type=int, default=4)
     ap.add_argument('--heads', type=int, default=4)
@@ -71,14 +74,22 @@ def main():
     texts = load_corpus(args.corpus, args.max_lines)
     print('  %s 段文字' % '{:,}'.format(len(texts)))
 
-    tok_path = 'out/tokenizer.json'
+    Tok = CharTokenizer if args.tokenizer == 'char' else BPETokenizer
+    tok_path = 'out/tokenizer_%s.json' % args.tokenizer
     if os.path.exists(tok_path):
-        tok = CharTokenizer.load(tok_path)
-        print('載入既有 tokenizer，詞表 %s' % '{:,}'.format(len(tok)))
-    else:
+        tok = Tok.load(tok_path)
+        print('載入既有 %s tokenizer，詞表 %s' % (args.tokenizer, '{:,}'.format(len(tok))))
+    elif args.tokenizer == 'char':
         print('建立字元級 tokenizer')
         tok = CharTokenizer.train(texts, max_vocab=args.vocab)
         tok.save(tok_path)
+    else:
+        print('訓練 BPE tokenizer（目標詞表 %s）' % '{:,}'.format(args.vocab))
+        btr = Tracer('traces', 'bpe_training')
+        tok = BPETokenizer.train(texts, vocab_size=args.vocab, tracer=btr)
+        btr.close()
+        tok.save(tok_path)
+        print('  合併過程寫入 %s' % btr.path)
 
     # ---------- 把整份語料打包成一條長串 ----------
     # 用「打包」而不是「每段補 padding」：沒有浪費的 pad 位置，

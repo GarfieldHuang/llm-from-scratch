@@ -37,11 +37,17 @@ pip install torch
 python tests/test_layers.py
 
 # 2. 訓練（預設會完整追蹤第 1 步）
-python train.py
+python train.py                          # 字元級 tokenizer
+python train.py --tokenizer bpe --vocab 6400   # 手刻 BPE
 
 # 3. 生成
 python generate.py --prompt "貓是一種"
+
+# 4. 看 BPE 詞表怎麼從 3653 長到 6400
+python tests/test_bpe.py
 ```
+
+詳細的教學文件在 [`docs/`](docs/)。
 
 ---
 
@@ -98,6 +104,7 @@ python generate.py --prompt "貓是一種"
 | 7 | `scratch/attention.py` | 最複雜的一層，含 softmax 的完整 Jacobian |
 | 8 | `scratch/model.py` | 殘差連接，以及它為什麼讓深層網路訓得動 |
 | 9 | `scratch/adamw.py` | 梯度算完之後，權重到底怎麼被改的 |
+| 10 | `tokenizer/bpe.py` | 詞表大小是怎麼決定的（「6400 哪來的」） |
 
 ---
 
@@ -121,6 +128,8 @@ python generate.py --prompt "貓是一種"
 不對 id 微分——它是資料不是參數。微分是對 `E` 裡的每一個實數做的，
 那些數字是連續的。沒被查到的列梯度算出來就是 0，不是特別規定。
 
+三點的詳細說明與當場驗證方法：[docs/06-常見誤解.md](docs/06-常見誤解.md)
+
 ---
 
 ## 跟真實模型的差異
@@ -129,7 +138,7 @@ python generate.py --prompt "貓是一種"
 
 | | 這份專案 | 真實 LLM |
 |---|---|---|
-| Tokenizer | 字元級（一個中文字 = 一個 token） | BPE |
+| Tokenizer | 字元級 **或** 手刻 BPE（起始符號是字元） | byte-level BPE |
 | Attention | 標準多頭 | 常用 GQA（K/V head 數較少） |
 | 精度 | float32 | bf16 混合精度 |
 | KV cache | 無（生成時重算） | 有 |
