@@ -234,6 +234,33 @@ def build_html(files, title, with_cover=True):
                 .replace('__BODY__', '\n'.join(parts)))
 
 
+def verify_render(chrome, html_path, budget=25000):
+    """
+    用 headless Chrome dump 渲染後的 DOM，確認公式和流程圖真的畫出來了。
+
+    只看檔案大小是不夠的——KaTeX 或 Mermaid 載入失敗時，PDF 照樣會產生，
+    只是公式變成原始的 LaTeX 文字、流程圖變成一坨程式碼。
+    這種錯誤在 markdown 預覽裡看不出來，一定要檢查渲染後的 DOM。
+    """
+    cmd = [chrome, '--headless=new', '--disable-gpu', '--no-sandbox',
+           '--virtual-time-budget=%d' % budget, '--dump-dom',
+           'file:///' + html_path.replace('\\', '/')]
+    dom = subprocess.run(cmd, capture_output=True, timeout=180).stdout.decode('utf-8', 'ignore')
+
+    katex = dom.count('class="katex"')
+    mer_total = dom.count('class="mermaid"')
+    mer_svg = len(re.findall(r'class="mermaid"[^>]*>\s*<svg', dom))
+    # 容器裡如果還是純文字，代表 KaTeX 沒接手
+    unrendered = re.findall(
+        r'<(?:div|span) class="kx-(?:display|inline)">(?!<span class="katex)([^<]{1,40})', dom)
+    errors = dom.count('color: red')
+
+    ok = (not unrendered) and (mer_svg == mer_total) and errors == 0
+    return ok, dict(katex=katex, mermaid='%d/%d' % (mer_svg, mer_total),
+                    unrendered=len(unrendered), errors=errors,
+                    samples=[u.strip()[:36] for u in unrendered[:3]])
+
+
 def print_pdf(chrome, html_path, pdf_path, budget=25000):
     cmd = [chrome, '--headless=new', '--disable-gpu', '--no-sandbox',
            '--no-pdf-header-footer', '--run-all-compositor-stages-before-draw',
@@ -262,31 +289,43 @@ def main():
             [f for f in files if os.path.basename(f).lower() == 'readme.md']
     print('找到 %d 份文件' % len(files))
 
-    made = []
+    jobs = []
     if args.split:
         for f in files:
             stem = os.path.splitext(os.path.basename(f))[0]
-            hp = os.path.join(OUT, stem + '.html')
-            pp = os.path.join(OUT, stem + '.pdf')
-            io.open(hp, 'w', encoding='utf-8').write(
-                build_html([f], stem, with_cover=False))
-            size = print_pdf(chrome, hp, pp)
-            made.append((pp, size))
-            print('  %-34s %7.1f KB' % (os.path.basename(pp), size / 1024))
-            if not args.keep_html:
-                os.remove(hp)
+            jobs.append((stem, [f], stem, False))
     else:
-        hp = os.path.join(OUT, 'docs.html')
-        pp = os.path.join(OUT, 'llm-from-scratch-教學文件.pdf')
-        io.open(hp, 'w', encoding='utf-8').write(build_html(files, args.title))
+        jobs.append(('llm-from-scratch-教學文件', files, args.title, True))
+
+    made, failed = [], []
+    for stem, srcs, title, cover in jobs:
+        hp = os.path.join(OUT, stem + '.html')
+        pp = os.path.join(OUT, stem + '.pdf')
+        io.open(hp, 'w', encoding='utf-8').write(build_html(srcs, title, with_cover=cover))
+
+        ok, info = verify_render(chrome, hp)
         size = print_pdf(chrome, hp, pp)
-        made.append((pp, size))
-        print('  %-34s %7.1f KB' % (os.path.basename(pp), size / 1024))
+        made.append(pp)
+
+        mark = 'OK  ' if ok else 'FAIL'
+        print('  %-32s %7.1f KB   %s  KaTeX %3d  Mermaid %s'
+              % (os.path.basename(pp), size / 1024, mark, info['katex'], info['mermaid']))
+        if not ok:
+            failed.append(stem)
+            if info['unrendered']:
+                print('        未渲染的數學 %d 處：%s' % (info['unrendered'], info['samples']))
+            if info['errors']:
+                print('        KaTeX 錯誤標記 %d 個' % info['errors'])
+
         if not args.keep_html:
             os.remove(hp)
 
     print()
-    print('完成，共 %d 個檔案，都在 out/ 底下' % len(made))
+    print('完成，共 %d 個檔案，都在 %s/ 底下' % (len(made), os.path.basename(OUT)))
+    if failed:
+        print('警告：%d 個檔案的渲染檢查沒過 -> %s' % (len(failed), ', '.join(failed)))
+        return 1
+    print('渲染檢查全部通過（公式與流程圖都確實畫出來了）')
     return 0
 
 

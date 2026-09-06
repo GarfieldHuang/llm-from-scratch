@@ -15,6 +15,17 @@
 | 6 | [三個最常見的誤解](06-常見誤解.md) | — | 做簡報時最值得講的三件事 |
 | 7 | [權重與 tokenizer 綁定](07-權重與tokenizer綁定.md) | `tests/test_tokenizer_binding.py` | 為什麼 continual pre-training 必須用同一份詞表 |
 
+## 單層深入
+
+01–07 是主線敘事。下面三份把單一層拆開講到底：完整的公式推導、結構圖、
+以及從追蹤檔抓出來的真實數值。做簡報時每一份都可以獨立成一個段落。
+
+| | 文件 | 對應程式碼 | 重點 |
+|---|---|---|---|
+| 8 | [RMSNorm](08-rmsnorm.md) | `scratch/rmsnorm.py` | 完整前向與反向推導（含商法則），以及它為什麼會放大梯度 |
+| 9 | [Attention 的結構](09-attention.md) | `scratch/attention.py` | 六個步驟逐一拆解，含因果遮罩與 softmax 完整 Jacobian |
+| 10 | [FFN 的結構（SwiGLU）](10-ffn.md) | `scratch/swiglu.py` | 閘門機制、為什麼升維再降維、參數量為何佔三分之二 |
+
 ## 附：怎麼產生講解用的素材
 
 ```bash
