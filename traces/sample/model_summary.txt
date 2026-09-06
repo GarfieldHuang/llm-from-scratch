@@ -1,0 +1,31 @@
+模型結構
+==============================================================
+  embedding                           1,183,744
+  block0                                778,752
+  block1                                778,752
+  block2                                778,752
+  block3                                778,752
+  final_norm                                256
+  lm_head (與 embedding 共用)                    0
+  ----------------------------------------------
+  總計                                  4,299,008
+  embedding 佔比                            27.5%
+
+超參數
+==============================================================
+  corpus           data/corpus_zhtw.jsonl
+  max_lines        20000
+  vocab            5000
+  dim              256
+  layers           4
+  heads            4
+  seq              128
+  batch            64
+  steps            3000
+  lr               0.003
+  warmup           100
+  clip             1.0
+  wd               0.01
+  trace_steps      1,1500,3000
+  device           cuda
+  seed             42

@@ -1,0 +1,18 @@
+梯度檢查總表
+========================================================================
+用有限差分 ( L(w+ε) − L(w−ε) ) / 2ε 驗證每一層手推的 backward。
+完全不使用 PyTorch autograd。
+
+  層                                        最大相對誤差   結果
+  --------------------------------------------------------------
+  Linear (無 bias)                        2.29e-12   PASS
+  Linear (有 bias)                        2.03e-12   PASS
+  RMSNorm                                2.13e-07   PASS
+  Embedding (scatter-add)                6.80e-14   PASS
+  TiedOutputHead                         5.61e-12   PASS
+  SwiGLU (FFN)                           1.69e-06   PASS
+  RoPE                                   2.19e-12   PASS
+  CausalSelfAttention                    3.32e-07   PASS
+  Softmax+CrossEntropy                   7.50e-08   PASS
+
+  總結：全部通過

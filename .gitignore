@@ -1,0 +1,24 @@
+# 訓練產物
+out/
+*.pt
+
+# 大語料（用 data/prepare.py 產生，或見 README）
+data/corpus_zhtw.jsonl
+
+# 追蹤檔會在每次跑訓練時重新產生。
+# 但保留一份範例讓人不用跑就能看（見 traces/sample/）
+traces/*.txt
+!traces/sample/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+.DS_Store
