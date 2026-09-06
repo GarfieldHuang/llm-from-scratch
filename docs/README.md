@@ -58,6 +58,8 @@ python tools/build_pdf.py            # 合併成一份（含封面、目錄）
 python tools/build_pdf.py --split    # 每份文件各一個
 ```
 
+PDF 就輸出在這個目錄，跟 markdown 放在一起。
+
 流程是 markdown → HTML（KaTeX + Mermaid）→ headless Chrome 列印。
 公式用 KaTeX 渲染、流程圖用 Mermaid 畫，兩者在 PDF 裡都是向量，放大不會糊。
 

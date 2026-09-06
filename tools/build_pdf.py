@@ -38,9 +38,9 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 DOCS = os.path.join(ROOT, 'docs')
-# 放 pdf/ 而不是 out/：out/ 有 gitignore（裡面是模型權重），
-# 但 PDF 是要跟著 repo 一起發布的成品。
-OUT = os.path.join(ROOT, 'pdf')
+# PDF 跟 markdown 放同一個目錄，一份文件的兩種格式擺在一起。
+# 不放 out/，因為那裡有 gitignore（裡面是模型權重），而 PDF 要跟著 repo 發布。
+OUT = DOCS
 
 CHROME_CANDIDATES = [
     r'C:\Program Files\Google\Chrome\Application\chrome.exe',

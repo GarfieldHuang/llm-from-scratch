@@ -50,7 +50,7 @@ python tests/test_bpe.py
 python tests/test_tokenizer_binding.py
 ```
 
-詳細的教學文件在 [`docs/`](docs/)，已排版好的 PDF 在 [`pdf/`](pdf/)。
+詳細的教學文件在 [`docs/`](docs/)——markdown 與排版好的 PDF 放在同一個目錄。
 
 ```bash
 python tools/build_pdf.py            # 合併成一份 PDF
