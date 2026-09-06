@@ -36,8 +36,11 @@
 ## 附：怎麼產生講解用的素材
 
 ```bash
-# ⊙ 與 @ 的差別，用最小的矩陣算給你看（含有限差分驗證）
+# ⊙ 與 @ 的差別，用最小的矩陣算給你看
 python tools/demo_operators.py
+
+# 兩條反向傳播規則的逐元素推導（為什麼 ∂L/∂x 裡出現 W、∂L/∂W 要轉置）
+python tools/demo_backward.py
 
 # 逐層梯度驗證表（可直接貼進簡報）
 python tests/test_layers.py          # -> traces/gradcheck.txt

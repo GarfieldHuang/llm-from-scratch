@@ -6,7 +6,7 @@
 
 $$\left|\mathcal{V}\right| = \underbrace{\left|\mathcal{V}_0\right|}_{\text{起始符號數}} + \underbrace{M}_{\text{合併次數}}$$
 
-BPE 每合併一次，詞表就多一個。想要 $\left|\mathcal{V}\right| = 6400$，就合併到總數變成 6400 為止。
+BPE 每合併一次，詞表就多一個。想要 |V| = 6400，就合併到總數變成 6400 為止。
 
 ---
 
@@ -124,14 +124,14 @@ byte-level 的代價，在前面的實驗裡量過：用簡體訓的 tokenizer �
 
 $$\left|\theta_{\text{embed}}\right| = \left|\mathcal{V}\right| \times d$$
 
-$6400 \times 768 = 4{,}915{,}200$。詞表開兩倍，embedding 就大兩倍。
+6400 × 768 = 4,915,200。詞表開兩倍，embedding 就大兩倍。
 
 而且因為 weight tying，同一個矩陣還兼任輸出層——所以詞表大小也直接決定了
 最後那個 logits 張量有多大：
 
 $$\text{logits} \in \mathbb{R}^{B \times T \times \left|\mathcal{V}\right|}$$
 
-那通常是訓練時**最大的中間張量**。以 $B=64$、$T=128$、$\left|\mathcal{V}\right|=6400$ 為例，
-光這一個張量就有 $5.24 \times 10^{7}$ 個數字。
+那通常是訓練時**最大的中間張量**。以 B=64、T=128、|V|=6400 為例，
+光這一個張量就有 5.24 × 10⁷ 個數字。
 
 **詞表大小不只是 tokenizer 的參數，它同時是模型的架構參數。**
