@@ -50,7 +50,12 @@ python tests/test_bpe.py
 python tests/test_tokenizer_binding.py
 ```
 
-詳細的教學文件在 [`docs/`](docs/)。
+詳細的教學文件在 [`docs/`](docs/)，已排版好的 PDF 在 [`pdf/`](pdf/)。
+
+```bash
+python tools/build_pdf.py            # 合併成一份 PDF
+python tools/build_pdf.py --split    # 每份文件各一個 PDF
+```
 
 ---
 
