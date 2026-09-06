@@ -177,12 +177,31 @@ class TinyLM:
     def state(self):
         return {name: p for p, _, name in self.params()}
 
-    def save(self, path):
+    def save(self, path, tokenizer_fingerprint=None):
+        """
+        權重跟 tokenizer 是綁死的，所以把 tokenizer 的指紋一起存進去。
+        見 tests/test_tokenizer_binding.py 的實驗：用錯 tokenizer 不會報錯，
+        但 perplexity 會比完全沒訓練的模型還糟。
+        """
         torch.save({'cfg': self.cfg,
+                    'tokenizer_fingerprint': tokenizer_fingerprint,
                     'params': {n: p.cpu() for n, p in self.state().items()}}, path)
 
-    def load(self, path, device='cpu'):
+    def load(self, path, device='cpu', tokenizer_fingerprint=None, strict_tokenizer=True):
         d = torch.load(path, map_location=device)
+
+        saved = d.get('tokenizer_fingerprint')
+        if saved and tokenizer_fingerprint and saved != tokenizer_fingerprint:
+            nl = chr(10)
+            msg = ('tokenizer 不符！' + nl +
+                   '  權重存檔時用的 : ' + str(saved) + nl +
+                   '  現在載入的     : ' + str(tokenizer_fingerprint) + nl +
+                   '  詞表大小可能一樣，但 id 對應不同——模型會照跑，輸出卻是垃圾。' + nl +
+                   '  要強制載入請傳 strict_tokenizer=False。')
+            if strict_tokenizer:
+                raise ValueError(msg)
+            print('警告：' + msg)
+
         cur = self.state()
         for n, v in d['params'].items():
             if n in cur:

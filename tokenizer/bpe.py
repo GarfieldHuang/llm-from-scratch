@@ -85,6 +85,19 @@ class BPETokenizer:
     def __len__(self):
         return len(self.itos)
 
+    def fingerprint(self):
+        """
+        詞表的指紋。存進 checkpoint，載入時比對，避免拿錯 tokenizer。
+
+        為什麼需要：詞表大小不同會直接報錯，但「大小相同、id 對應不同」
+        會安然載入、正常執行、輸出垃圾——而且沒有任何警告。
+        指紋涵蓋 id 的順序，所以順序一變就會被抓到。
+        """
+        import hashlib
+        s = '|'.join(self.itos) + '|'.join('%s>%s' % m for m in self.merges)
+        return hashlib.sha256(s.encode('utf-8')).hexdigest()[:16]
+
+
     # 訓練、編碼、解碼的實作寫在下面的模組層級函式，最後再綁回這個 class。
     # 這樣做的用意是讓演算法本身可以從上到下連貫地讀，不被 class 的縮排打斷。
 

@@ -13,6 +13,7 @@
 | 4 | [反向傳播全鏈](04-反向傳播.md) | 全部 | 從 `p − y` 一路走回 `E` |
 | 5 | [權重是怎麼被改的](05-adamw.md) | `scratch/adamw.py` | 反向算完之後才輪到 optimizer |
 | 6 | [三個最常見的誤解](06-常見誤解.md) | — | 做簡報時最值得講的三件事 |
+| 7 | [權重與 tokenizer 綁定](07-權重與tokenizer綁定.md) | `tests/test_tokenizer_binding.py` | 為什麼 continual pre-training 必須用同一份詞表 |
 
 ## 附：怎麼產生講解用的素材
 
@@ -28,6 +29,9 @@ python train.py --trace-steps 1      # -> traces/train_step_0001.txt
 
 # 一次推論的完整前向
 python generate.py --prompt "貓是一種" --trace   # -> traces/inference.txt
+
+# 證明權重與 tokenizer 綁死（用錯會比沒訓練還糟）
+python tests/test_tokenizer_binding.py
 ```
 
 `traces/sample/` 裡有一份預先跑好的，不用執行就能看。

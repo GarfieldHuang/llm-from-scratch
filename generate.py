@@ -86,7 +86,7 @@ def main():
     model = TinyLM(vocab_size=cfg['vocab_size'], dim=cfg['dim'], n_layers=cfg['n_layers'],
                    n_heads=cfg['n_heads'], hidden=cfg['hidden'], max_len=cfg['max_len'],
                    device=args.device)
-    model.load(args.model, args.device)
+    model.load(args.model, args.device, tokenizer_fingerprint=tok.fingerprint())
 
     ids = tok.encode(args.prompt)
     print('提示詞：%s' % args.prompt)

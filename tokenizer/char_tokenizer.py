@@ -64,6 +64,19 @@ class CharTokenizer:
     def __len__(self):
         return len(self.itos)
 
+    def fingerprint(self):
+        """
+        詞表的指紋。存進 checkpoint，載入時比對，避免拿錯 tokenizer。
+
+        為什麼需要：詞表大小不同會直接報錯，但「大小相同、id 對應不同」
+        會安然載入、正常執行、輸出垃圾——而且沒有任何警告。
+        指紋涵蓋 id 的順序，所以順序一變就會被抓到。
+        """
+        import hashlib
+        s = '|'.join(self.itos)
+        return hashlib.sha256(s.encode('utf-8')).hexdigest()[:16]
+
+
     # ---------------------------------------------------------------
     def encode(self, text, bos=False, eos=False):
         ids = [self.stoi.get(c, UNK) for c in text]

@@ -45,6 +45,9 @@ python generate.py --prompt "貓是一種"
 
 # 4. 看 BPE 詞表怎麼從 3653 長到 6400
 python tests/test_bpe.py
+
+# 5. 證明權重與 tokenizer 綁死
+python tests/test_tokenizer_binding.py
 ```
 
 詳細的教學文件在 [`docs/`](docs/)。
@@ -105,6 +108,7 @@ python tests/test_bpe.py
 | 8 | `scratch/model.py` | 殘差連接，以及它為什麼讓深層網路訓得動 |
 | 9 | `scratch/adamw.py` | 梯度算完之後，權重到底怎麼被改的 |
 | 10 | `tokenizer/bpe.py` | 詞表大小是怎麼決定的（「6400 哪來的」） |
+| 11 | `tests/test_tokenizer_binding.py` | 為什麼權重與詞表必須一起發布 |
 
 ---
 

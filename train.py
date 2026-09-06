@@ -178,7 +178,7 @@ def main():
                   % (step, args.steps, float(loss), lr, gnorm, time.time() - t0))
 
     log.close()
-    model.save('out/model.pt')
+    model.save('out/model.pt', tokenizer_fingerprint=tok.fingerprint())
     print('\n完成，耗時 %.0f 秒' % (time.time() - t0))
     print('  權重      out/model.pt')
     print('  訓練紀錄  traces/train_log.txt')
