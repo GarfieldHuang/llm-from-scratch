@@ -27,6 +27,6 @@
   warmup           100
   clip             1.0
   wd               0.01
-  trace_steps      1
+  trace_steps      1,3000
   device           cuda
   seed             42

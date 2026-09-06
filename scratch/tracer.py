@@ -122,16 +122,23 @@ class Tracer:
             self._w('        ...(共 %d 列)' % R)
 
     def table(self, headers, rows, widths=None):
+        """
+        欄位之間用兩個空白隔開，不要直接相接。
+
+        直接相接的話，兩個右對齊的數字剛好填滿各自的寬度時會黏在一起
+        （例如 +0.00048+0.00000），看起來像一個數字，非常容易誤讀。
+        """
         if not self.enabled:
             return
         widths = widths or [max(12, len(str(h)) + 2) for h in headers]
-        self._w('    ' + ''.join(str(h).rjust(w) for h, w in zip(headers, widths)))
-        self._w('    ' + ''.join('-' * (w - 1) + ' ' for w in widths))
+        sep = '  '
+        self._w('    ' + sep.join(str(h).rjust(w) for h, w in zip(headers, widths)))
+        self._w('    ' + sep.join('-' * w for w in widths))
         for r in rows:
             cells = []
             for v, w in zip(r, widths):
                 cells.append(v.rjust(w) if isinstance(v, str) else _fmt(v, w, 5))
-            self._w('    ' + ''.join(cells))
+            self._w('    ' + sep.join(cells))
 
     def note(self, t):
         """給讀者的白話說明，跟數字區分開。"""
