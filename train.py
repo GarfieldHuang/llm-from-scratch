@@ -43,11 +43,15 @@ def load_corpus(path, max_lines):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--corpus', default='data/corpus_zhtw.jsonl')
+    # repo 附的是 corpus_sample.jsonl；corpus_zhtw.jsonl 是作者本機的完整語料。
+    # 跟 tests/test_bpe.py 一樣：有完整的就用完整的，沒有就用附的樣本。
+    _corpus = ('data/corpus_zhtw.jsonl' if os.path.exists('data/corpus_zhtw.jsonl')
+               else 'data/corpus_sample.jsonl')
+    ap.add_argument('--corpus', default=_corpus)
     ap.add_argument('--max-lines', type=int, default=20000)
     ap.add_argument('--vocab', type=int, default=5000)
     ap.add_argument('--tokenizer', choices=['char', 'bpe'], default='char',
-                    help='char = 一個字一個 token（好懂）；bpe = 合併高頻字組（序列短約 30%）')
+                    help='char = 一個字一個 token（好懂）；bpe = 合併高頻字組（序列短約 30%%）')
     ap.add_argument('--dim', type=int, default=128)
     ap.add_argument('--layers', type=int, default=4)
     ap.add_argument('--heads', type=int, default=4)
@@ -178,7 +182,8 @@ def main():
                   % (step, args.steps, float(loss), lr, gnorm, time.time() - t0))
 
     log.close()
-    model.save('out/model.pt', tokenizer_fingerprint=tok.fingerprint())
+    model.save('out/model.pt', tokenizer_fingerprint=tok.fingerprint(),
+               tokenizer_path=tok_path, tokenizer_kind=args.tokenizer)
     print('\n完成，耗時 %.0f 秒' % (time.time() - t0))
     print('  權重      out/model.pt')
     print('  訓練紀錄  traces/train_log.txt')

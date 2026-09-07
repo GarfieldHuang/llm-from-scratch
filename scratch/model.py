@@ -177,14 +177,22 @@ class TinyLM:
     def state(self):
         return {name: p for p, _, name in self.params()}
 
-    def save(self, path, tokenizer_fingerprint=None):
+    def save(self, path, tokenizer_fingerprint=None,
+             tokenizer_path=None, tokenizer_kind=None):
         """
-        權重跟 tokenizer 是綁死的，所以把 tokenizer 的指紋一起存進去。
+        權重跟 tokenizer 是綁死的，所以把 tokenizer 的身分一起存進去。
         見 tests/test_tokenizer_binding.py 的實驗：用錯 tokenizer 不會報錯，
         但 perplexity 會比完全沒訓練的模型還糟。
+
+        存兩種資訊，各有各的用途：
+          fingerprint  用來「驗證」——載入時比對，不合就擋下來。
+          path / kind  用來「尋找」——下次要載入時，直接知道去哪拿，不用猜檔名。
+        只存指紋是不夠的：指紋能告訴你手上這份不對，卻不能告訴你對的在哪。
         """
         torch.save({'cfg': self.cfg,
                     'tokenizer_fingerprint': tokenizer_fingerprint,
+                    'tokenizer_path': tokenizer_path,
+                    'tokenizer_kind': tokenizer_kind,
                     'params': {n: p.cpu() for n, p in self.state().items()}}, path)
 
     def load(self, path, device='cpu', tokenizer_fingerprint=None, strict_tokenizer=True):
