@@ -101,6 +101,50 @@ ValueError: tokenizer 不符！
 
 ---
 
+## 但指紋只能「驗證」，不能「尋找」
+
+指紋會告訴你「手上這份不對」，卻不會告訴你「對的在哪」。這個差別看起來很小，
+實際上這份專案自己就踩過：
+
+`generate.py` 當初是用猜檔名的方式找 tokenizer——
+
+```python
+tp = 'out/tokenizer_bpe.json' if os.path.exists('out/tokenizer_bpe.json') else 'out/tokenizer_char.json'
+```
+
+平常沒事，因為 `out/` 底下只有一份詞表。但只要跑過一次 `tests/test_bpe.py`，
+就會多出一份 6,400 的 BPE 詞表，於是這行開始把 6,400 的詞表交給 3,195 的權重。
+指紋確實擋下來了（這是好事），可是使用者收到的是「不符」，不是「對的那份在這裡」。
+
+所以 checkpoint 要存的不只是指紋，還有 tokenizer 的**身分**：
+
+```python
+model.save('out/model.pt',
+           tokenizer_fingerprint=tok.fingerprint(),   # 用來驗證：這份對不對
+           tokenizer_path=tok_path,                   # 用來尋找：對的在哪
+           tokenizer_kind=args.tokenizer)
+```
+
+`tokenizer/resolve.py` 就照這個順序找：
+
+| 順序 | 依據 | 用在什麼情況 |
+|---|---|---|
+| ① | checkpoint 記的 `tokenizer_path` | 正常情況，直接讀，不用猜 |
+| ② | 指紋比對候選詞表 | 舊 checkpoint 沒存路徑，或詞表被搬走了 |
+| ③ | 明確報錯，列出試過哪些、指紋各是多少 | 真的找不到——講清楚，而不是丟 `IndexError` |
+
+跑起來會告訴你它是怎麼決定的：
+
+```
+tokenizer: out/tokenizer_char.json（char，詞表 3,195，來源：checkpoint 記錄的路徑）
+```
+
+**教訓**：「靠檔案系統的狀態去推斷模型的身分」是個很容易寫出來、又很難發現的錯。
+它在乾淨環境下永遠正常，只在「跑過別的東西之後」才出錯。
+模型的身分應該由模型自己攜帶。
+
+---
+
 ## 如果真的需要改 tokenizer
 
 ### 可以：擴充（append）

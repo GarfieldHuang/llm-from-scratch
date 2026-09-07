@@ -11,7 +11,6 @@
   2. 詞表大小相同但 id 對應不同 → **載得進去、跑得動、輸出是垃圾**（最危險）
   3. 正確的做法：擴充詞表時保留原有 id，只在後面接新的列
 """
-import json
 import os
 import random
 import sys
@@ -21,8 +20,7 @@ import torch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scratch.model import TinyLM                       # noqa: E402
 from scratch.loss import SoftmaxCrossEntropy           # noqa: E402
-from tokenizer.bpe import BPETokenizer                 # noqa: E402
-from tokenizer.char_tokenizer import CharTokenizer     # noqa: E402
+from tokenizer.resolve import resolve                  # noqa: E402
 
 MODEL = 'out/model.pt'
 if not os.path.exists(MODEL):
@@ -30,16 +28,17 @@ if not os.path.exists(MODEL):
     sys.exit(1)
 
 # ---------- 載入原本的模型與 tokenizer ----------
-tp = 'out/tokenizer_bpe.json' if os.path.exists('out/tokenizer_bpe.json') else 'out/tokenizer_char.json'
-kind = json.load(open(tp, encoding='utf-8')).get('type', 'char')
-tok = (BPETokenizer if kind == 'bpe' else CharTokenizer).load(tp)
+# 這裡曾經是「哪個檔案存在就用哪個」，結果跑過 tests/test_bpe.py 之後
+# out/ 底下會多一份 bpe 詞表，這支測試就會拿 6,400 的詞表去餵 3,195 的權重。
+# 諷刺的是那正是這支測試要證明的事——只是以 IndexError 的形式。
+tok, tp, kind, how = resolve(MODEL)
 
 ckpt = torch.load(MODEL, map_location='cpu')
 cfg = ckpt['cfg']
 dev = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = TinyLM(vocab_size=cfg['vocab_size'], dim=cfg['dim'], n_layers=cfg['n_layers'],
                n_heads=cfg['n_heads'], hidden=cfg['hidden'], max_len=cfg['max_len'], device=dev)
-model.load(MODEL, dev)
+model.load(MODEL, dev, tokenizer_fingerprint=tok.fingerprint())
 ce = SoftmaxCrossEntropy()
 
 TEXT = '貓是一種可愛的動物，牠喜歡睡覺。狗也是動物，狗喜歡跑步。今天天氣很好。'
@@ -51,7 +50,8 @@ def loss_of(ids):
     return float(ce.forward(model.forward(x), y))
 
 
-print('模型  %s   詞表 %s   %s' % (MODEL, '{:,}'.format(cfg['vocab_size']), kind))
+print('模型  %s   詞表 %s   %s（tokenizer 來源：%s）'
+      % (MODEL, '{:,}'.format(cfg['vocab_size']), kind, how))
 print('測試句：%s' % TEXT)
 print()
 
