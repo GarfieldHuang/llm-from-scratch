@@ -22,3 +22,6 @@ venv/
 .idea/
 *.swp
 .DS_Store
+
+# 簡報產生器的相依套件
+tools/deck/node_modules/

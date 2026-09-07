@@ -1,0 +1,6 @@
+{
+  "name": "llm-from-scratch-deck",
+  "private": true,
+  "description": "教學簡報產生器",
+  "dependencies": { "pptxgenjs": "^4.0.1" }
+}
