@@ -43,10 +43,14 @@ def load_corpus(path, max_lines):
 
 def main():
     ap = argparse.ArgumentParser()
-    # repo 附的是 corpus_sample.jsonl；corpus_zhtw.jsonl 是作者本機的完整語料。
-    # 跟 tests/test_bpe.py 一樣：有完整的就用完整的，沒有就用附的樣本。
-    _corpus = ('data/corpus_zhtw.jsonl' if os.path.exists('data/corpus_zhtw.jsonl')
-               else 'data/corpus_sample.jsonl')
+    # 語料由大到小，挑第一個存在的：
+    #   corpus_zhtw.jsonl      完整版 107 MB，未隨 repo 發布（見 README）
+    #   corpus_zhtw_20k.jsonl  前 20,000 段 14 MB，隨 repo 發布，docs/11 用的就是這個規模
+    #   corpus_sample.jsonl    前 2,000 段 1.4 MB，最小的可跑範例
+    _corpus = next((p for p in ('data/corpus_zhtw.jsonl',
+                                'data/corpus_zhtw_20k.jsonl',
+                                'data/corpus_sample.jsonl')
+                    if os.path.exists(p)), 'data/corpus_sample.jsonl')
     ap.add_argument('--corpus', default=_corpus)
     ap.add_argument('--max-lines', type=int, default=20000)
     ap.add_argument('--vocab', type=int, default=5000)

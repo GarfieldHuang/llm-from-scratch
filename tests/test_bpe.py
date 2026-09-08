@@ -12,9 +12,11 @@ from tokenizer.bpe import BPETokenizer, pre_tokenize     # noqa: E402
 from tokenizer.char_tokenizer import CharTokenizer       # noqa: E402
 from scratch.tracer import Tracer                        # noqa: E402
 
+# 這支只讀前 2,000 段（快速示範，約 12 秒），所以固定用最小的那份就夠了——
+# docs/02 的數字就是這樣來的。完整訓練的語料選擇見 train.py。
 CORPUS = 'data/corpus_sample.jsonl'
 if not os.path.exists(CORPUS):
-    CORPUS = 'data/corpus_zhtw.jsonl'
+    CORPUS = 'data/corpus_zhtw_20k.jsonl'
 
 texts = []
 with open(CORPUS, encoding='utf-8') as f:

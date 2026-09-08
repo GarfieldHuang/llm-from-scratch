@@ -59,6 +59,46 @@ python tools/build_pdf.py --split    # 每份文件各一個 PDF
 
 ---
 
+## 語料
+
+`data/` 底下有三份，`train.py` 由大到小挑第一個存在的：
+
+| 檔案 | 段數 | 大小 | 隨 repo 發布 |
+|---|---:|---:|---|
+| `corpus_zhtw.jsonl` | 190,536 | 107 MB | ✗ 見下 |
+| `corpus_zhtw_20k.jsonl` | 20,000 | 14 MB | ✓ |
+| `corpus_sample.jsonl` | 2,000 | 1.4 MB | ✓ |
+
+格式是每行一個 JSON：`{"text": "..."}`。
+
+**clone 下來就能直接跑**——`corpus_zhtw_20k.jsonl` 就是 `docs/11` 那份執行紀錄的規模。
+`tests/test_bpe.py` 只讀前 2,000 段當快速示範，固定用 `corpus_sample.jsonl`，
+所以 `docs/02` 的數字跟它是對得起來的。
+
+### 完整語料要自己準備
+
+`corpus_zhtw.jsonl` 有 107 MB，超過 GitHub 單檔 100 MB 的上限，所以沒有進版控。
+想跑完整版的話：
+
+1. 取得 [MiniMind](https://github.com/jingyaogong/minimind) 的 pretrain 語料
+   （掛在 HuggingFace / ModelScope，原始為簡體）
+2. 要繁中的話用 OpenCC 的 `s2twp` 設定轉換——`s2t` 只換字元，
+   `s2twp` 會連台灣用語一起換（例如「通過」→「透過」）
+3. 存成 `data/corpus_zhtw.jsonl`，`train.py` 會自動改用它
+
+### 文件裡的數字能重現嗎
+
+| 文件 | 用哪一份 | 能重現嗎 |
+|---|---|---|
+| `docs/02-tokenizer` | `corpus_sample.jsonl` | ✓ 完全一致 |
+| `docs/11-完整執行紀錄` | 作者本機完整語料的前 20,000 段 | 幾乎一致，差 1 |
+
+`docs/11` 記的是起始詞表 5,227、需合併 1,173 次；用 repo 附的 `corpus_zhtw_20k.jsonl`
+跑會得到 **5,226 / 1,174**。差別來自繁體轉換的用詞選擇，累積下來相異字元差一個。
+規模、走勢與結論都不受影響。
+
+---
+
 ## 每一步的數值都會寫成檔案
 
 這是這份專案的重點。跑完之後 `traces/` 底下會有：

@@ -2,7 +2,8 @@
 out/
 *.pt
 
-# 大語料（用 data/prepare.py 產生，或見 README）
+# 完整語料 107 MB，超過 GitHub 單檔 100 MB 上限，不進版控（取得方式見 README）
+# 隨 repo 發布的是 corpus_zhtw_20k.jsonl（14 MB）與 corpus_sample.jsonl（1.4 MB）
 data/corpus_zhtw.jsonl
 
 # 追蹤檔會在每次跑訓練時重新產生。
